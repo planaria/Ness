@@ -201,7 +201,7 @@ namespace SuzuFactory.Ness
             var maxSize = Mathf.Max(MAX_NUM_ROWS, MAX_NUM_COLS);
             var size = Mathf.Max(numRows, numCols);
             var wholeScale = (maxSize + 1.0f) / (size + 1.0f);
-            scaleTransform.localScale = new Vector3(wholeScale, wholeScale, wholeScale);
+            scaleTransform.localScale = new Vector3(wholeScale, 1.0f, wholeScale);
 
             cellGameObjects = new GameObject[cells.Length];
             gridGameObjects = new GameObject[grids.Length];
@@ -543,6 +543,13 @@ namespace SuzuFactory.Ness
                         }
                     }
                 }
+            }
+
+            var colliders = (SphereCollider[])mapTransform.GetComponentsInChildren(typeof(SphereCollider));
+
+            for (int i = 0; i < colliders.Length; ++i)
+            {
+                colliders[i].radius /= wholeScale;
             }
         }
 
