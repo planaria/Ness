@@ -51,9 +51,9 @@ namespace SuzuFactory.Ness
 
         private const float BLOCK_SIZE = 0.03f;
         private const float POLYNOMIO_SIZE = 0.023f;
-        private const float END_SIZE = 0.009f;
-        private const float PATH_RADIUS = 0.003f;
-        private const float START_RADIUS = 0.007f;
+        private const float END_SIZE = 0.005f;
+        private const float DEFAULT_PATH_RADIUS = 0.003f;
+        private const float DEFAULT_START_RADIUS = 0.007f;
         private const float DISJOINT_WIDTH = 0.006f;
 
         private const int CELL_BITS_TYPE = 4;
@@ -130,9 +130,11 @@ namespace SuzuFactory.Ness
         private Transform pathTransform;
         private Transform currentStartTransform;
         private Transform currentPathTransform;
-        private SkinnedMeshRenderer currentPathMeshRenderer;
         private Transform currentStartSymmetryTransform;
         private Transform currentPathSymmetryTransform;
+        private SkinnedMeshRenderer currentStartMeshRenderer;
+        private SkinnedMeshRenderer currentPathMeshRenderer;
+        private SkinnedMeshRenderer currentStartSymmetryMeshRenderer;
         private SkinnedMeshRenderer currentPathSymmetryMeshRenderer;
         private Transform starTransform;
         private Transform whiteStarTransform;
@@ -141,6 +143,8 @@ namespace SuzuFactory.Ness
         private GameObject[] failedObjects;
         private int numFailedObjects;
 
+        private float radiusWeight = 0.0f;
+
         void Start()
         {
             scaleTransform = transform.Find("Scale");
@@ -148,10 +152,12 @@ namespace SuzuFactory.Ness
             pathTransform = scaleTransform.Find("Path");
             currentStartTransform = scaleTransform.Find("CurrentStart");
             currentPathTransform = scaleTransform.Find("CurrentPath");
-            currentPathMeshRenderer = (SkinnedMeshRenderer)currentPathTransform.Find("WhitePath").GetComponent(typeof(SkinnedMeshRenderer));
             currentStartSymmetryTransform = scaleTransform.Find("CurrentStartSymmetry");
             currentPathSymmetryTransform = scaleTransform.Find("CurrentPathSymmetry");
-            currentPathSymmetryMeshRenderer = (SkinnedMeshRenderer)currentPathSymmetryTransform.Find("WhitePath").GetComponent(typeof(SkinnedMeshRenderer));
+            currentStartMeshRenderer = (SkinnedMeshRenderer)currentStartTransform.GetChild(0).GetComponent(typeof(SkinnedMeshRenderer));
+            currentPathMeshRenderer = (SkinnedMeshRenderer)currentPathTransform.GetChild(0).GetComponent(typeof(SkinnedMeshRenderer));
+            currentStartSymmetryMeshRenderer = (SkinnedMeshRenderer)currentStartSymmetryTransform.GetChild(0).GetComponent(typeof(SkinnedMeshRenderer));
+            currentPathSymmetryMeshRenderer = (SkinnedMeshRenderer)currentPathSymmetryTransform.GetChild(0).GetComponent(typeof(SkinnedMeshRenderer));
             starTransform = transform.Find("Star");
             whiteStarTransform = transform.Find("WhiteStar");
             audioSource = (AudioSource)transform.Find("Audio Source").GetComponent(typeof(AudioSource));
@@ -192,11 +198,15 @@ namespace SuzuFactory.Ness
                 Destroy(mapTransform.GetChild(i).gameObject);
             }
 
-            var wholeScale = Mathf.Max(MAX_NUM_ROWS + 1.0f, MAX_NUM_COLS + 1.0f) / Mathf.Max(Mathf.Max(numRows + 1.0f, numCols + 1.0f), 3.0f);
+            var maxSize = Mathf.Max(MAX_NUM_ROWS, MAX_NUM_COLS);
+            var size = Mathf.Max(numRows, numCols);
+            var wholeScale = (maxSize + 1.0f) / (size + 1.0f);
             scaleTransform.localScale = new Vector3(wholeScale, wholeScale, wholeScale);
 
             cellGameObjects = new GameObject[cells.Length];
             gridGameObjects = new GameObject[grids.Length];
+
+            radiusWeight = 100.0f * (1.0f - Mathf.Clamp(2.0f / wholeScale, 0.15f, 1.0f));
 
             for (int i = 0; i <= numRows; ++i)
             {
@@ -205,6 +215,8 @@ namespace SuzuFactory.Ness
                     var joint = grids[GetGridIndex(i * 2, j * 2 + 1)] != GRID_DISJOINT;
                     var newPath = VRCInstantiate(joint ? pathPrefab : disjointPathPrefab);
                     var t = newPath.transform;
+                    var meshRenderer = (SkinnedMeshRenderer)t.GetChild(0).GetComponent(typeof(SkinnedMeshRenderer));
+                    meshRenderer.SetBlendShapeWeight(0, radiusWeight);
                     t.SetParent(mapTransform, false);
                     t.localPosition = GetHalfGridPosition(i, j);
                     t.localRotation = Quaternion.Euler(0.0f, 180.0f, 0.0f);
@@ -218,6 +230,8 @@ namespace SuzuFactory.Ness
                     var joint = grids[GetGridIndex(i * 2 + 1, j * 2)] != GRID_DISJOINT;
                     var newPath = VRCInstantiate(joint ? pathPrefab : disjointPathPrefab);
                     var t = newPath.transform;
+                    var meshRenderer = (SkinnedMeshRenderer)t.GetChild(0).GetComponent(typeof(SkinnedMeshRenderer));
+                    meshRenderer.SetBlendShapeWeight(0, radiusWeight);
                     t.SetParent(mapTransform, false);
                     t.localPosition = GetHalfGridPosition(i, j);
                     t.localRotation = Quaternion.Euler(0.0f, 90.0f, 0.0f);
@@ -474,6 +488,8 @@ namespace SuzuFactory.Ness
 
                     var newGameObject = VRCInstantiate(prefab);
                     var t = newGameObject.transform;
+                    var meshRenderer = (SkinnedMeshRenderer)t.GetChild(0).GetComponent(typeof(SkinnedMeshRenderer));
+                    meshRenderer.SetBlendShapeWeight(0, radiusWeight);
 
                     t.SetParent(mapTransform, false);
                     t.localPosition = p;
@@ -1313,6 +1329,8 @@ namespace SuzuFactory.Ness
                 firstPointSymmetry = GetSymmetryWaypointPosition(row, col);
                 currentStartTransform.localPosition = firstPoint;
                 currentStartSymmetryTransform.localPosition = firstPointSymmetry;
+                currentStartMeshRenderer.SetBlendShapeWeight(0, radiusWeight);
+                currentStartSymmetryMeshRenderer.SetBlendShapeWeight(0, radiusWeight);
             }
 
             testEnd = false;
@@ -1445,6 +1463,9 @@ namespace SuzuFactory.Ness
                     }
                 }
 
+                var pathRadius = DEFAULT_PATH_RADIUS * (1.0f - radiusWeight / 100.0f);
+                var startRadius = DEFAULT_START_RADIUS * (1.0f - radiusWeight / 100.0f);
+
                 if (nextRow != row || nextCol != col)
                 {
                     if (testWaypoints.Length >= 2)
@@ -1469,15 +1490,15 @@ namespace SuzuFactory.Ness
                         if (testWaypoints.Length > 2)
                         {
                             var nextPoint = GetWaypointPosition(nextRow, nextCol);
-                            length = Mathf.Min(length, BLOCK_SIZE / 4.0f - (START_RADIUS + PATH_RADIUS - (firstPoint - nextPoint).magnitude));
-                            length = Mathf.Min(length, BLOCK_SIZE / 4.0f - (START_RADIUS + PATH_RADIUS - (firstPointSymmetry - nextPoint).magnitude));
+                            length = Mathf.Min(length, BLOCK_SIZE / 4.0f - (startRadius + pathRadius - (firstPoint - nextPoint).magnitude));
+                            length = Mathf.Min(length, BLOCK_SIZE / 4.0f - (startRadius + pathRadius - (firstPointSymmetry - nextPoint).magnitude));
                         }
 
                         bool blocked = false;
 
                         if (GetTestMap(nextRow, nextCol))
                         {
-                            length = Mathf.Min(length, BLOCK_SIZE / 4.0f - PATH_RADIUS * 2.0f);
+                            length = Mathf.Min(length, BLOCK_SIZE / 4.0f - pathRadius * 2.0f);
                             blocked = true;
                         }
                         else if (symmetry != SYMMETRY_NONE)
@@ -1486,7 +1507,7 @@ namespace SuzuFactory.Ness
 
                             if (GetSymmetryWaypointIndex(nextIndex) == nextIndex)
                             {
-                                length = Mathf.Min(length, BLOCK_SIZE / 4.0f - PATH_RADIUS);
+                                length = Mathf.Min(length, BLOCK_SIZE / 4.0f - pathRadius);
                                 blocked = true;
                             }
                         }
@@ -1507,6 +1528,7 @@ namespace SuzuFactory.Ness
             currentPathTransform.localPosition = lastPoint;
             currentPathTransform.localRotation = Quaternion.Euler(0.0f, angle, 0.0f);
             currentPathMeshRenderer.SetBlendShapeWeight(0, blendShapeWeight);
+            currentPathMeshRenderer.SetBlendShapeWeight(1, radiusWeight);
 
             currentStartTransform.gameObject.SetActive(true);
             currentPathTransform.gameObject.SetActive(true);
@@ -1516,6 +1538,7 @@ namespace SuzuFactory.Ness
                 currentPathSymmetryTransform.localPosition = lastPointSymmetry;
                 currentPathSymmetryTransform.localRotation = Quaternion.Euler(0.0f, GetSymmetryAngle(angle), 0.0f);
                 currentPathSymmetryMeshRenderer.SetBlendShapeWeight(0, blendShapeWeight);
+                currentPathSymmetryMeshRenderer.SetBlendShapeWeight(1, radiusWeight);
 
                 currentStartSymmetryTransform.gameObject.SetActive(true);
                 currentPathSymmetryTransform.gameObject.SetActive(true);
@@ -2525,6 +2548,9 @@ namespace SuzuFactory.Ness
 
             var newPath1 = VRCInstantiate(whitePathPrefab);
             var t1 = newPath1.transform;
+            var meshRenderer1 = (SkinnedMeshRenderer)t1.GetChild(0).GetComponent(typeof(SkinnedMeshRenderer));
+            meshRenderer1.SetBlendShapeWeight(0, 25.0f);
+            meshRenderer1.SetBlendShapeWeight(1, radiusWeight);
             t1.SetParent(pathTransform, false);
             t1.localPosition = lastPos1;
             t1.localRotation = Quaternion.Euler(0.0f, -Mathf.Atan2(pos1.z - lastPos1.z, pos1.x - lastPos1.x) * Mathf.Rad2Deg, 0.0f);
@@ -2538,6 +2564,9 @@ namespace SuzuFactory.Ness
 
                 newPath2 = VRCInstantiate(whitePathPrefab);
                 var t2 = newPath2.transform;
+                var meshRenderer2 = (SkinnedMeshRenderer)t2.GetChild(0).GetComponent(typeof(SkinnedMeshRenderer));
+                meshRenderer2.SetBlendShapeWeight(0, 25.0f);
+                meshRenderer2.SetBlendShapeWeight(1, radiusWeight);
                 t2.SetParent(pathTransform, false);
                 t2.localPosition = lastPos2;
                 t2.localRotation = Quaternion.Euler(0.0f, -Mathf.Atan2(pos2.z - lastPos2.z, pos2.x - lastPos2.x) * Mathf.Rad2Deg, 0.0f);

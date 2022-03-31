@@ -93,10 +93,40 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -3887185075125053422, guid: 349028c04495f6949a9ff87d16662984,
+        type: 3}
+      propertyPath: m_DirtyAABB
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -3887185075125053422, guid: 349028c04495f6949a9ff87d16662984,
+        type: 3}
+      propertyPath: m_AABB.m_Center.x
+      value: -0.014999999
+      objectReference: {fileID: 0}
+    - target: {fileID: -3887185075125053422, guid: 349028c04495f6949a9ff87d16662984,
+        type: 3}
+      propertyPath: m_AABB.m_Center.y
+      value: -3.0559024e-11
+      objectReference: {fileID: 0}
+    - target: {fileID: -3887185075125053422, guid: 349028c04495f6949a9ff87d16662984,
+        type: 3}
+      propertyPath: m_AABB.m_Center.z
+      value: 0.0000000041909516
+      objectReference: {fileID: 0}
+    - target: {fileID: -3887185075125053422, guid: 349028c04495f6949a9ff87d16662984,
+        type: 3}
+      propertyPath: m_AABB.m_Extent.x
+      value: 0.018000001
+      objectReference: {fileID: 0}
+    - target: {fileID: -3887185075125053422, guid: 349028c04495f6949a9ff87d16662984,
+        type: 3}
+      propertyPath: m_AABB.m_Extent.z
+      value: 0.003000002
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 349028c04495f6949a9ff87d16662984,
         type: 3}
       propertyPath: m_Name
-      value: DisjointPath
+      value: Path
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 349028c04495f6949a9ff87d16662984, type: 3}

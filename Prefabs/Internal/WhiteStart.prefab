@@ -98,10 +98,30 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: ff65d08cf93adcc4ba4a0b87607297e8, type: 2}
+    - target: {fileID: -3887185075125053422, guid: 63a0b5c117bab3643b006df06c68982b,
+        type: 3}
+      propertyPath: m_DirtyAABB
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -3887185075125053422, guid: 63a0b5c117bab3643b006df06c68982b,
+        type: 3}
+      propertyPath: m_AABB.m_Extent.x
+      value: 0.0069999946
+      objectReference: {fileID: 0}
+    - target: {fileID: -3887185075125053422, guid: 63a0b5c117bab3643b006df06c68982b,
+        type: 3}
+      propertyPath: m_AABB.m_Extent.z
+      value: 0.0069999946
+      objectReference: {fileID: 0}
+    - target: {fileID: -3887185075125053422, guid: 63a0b5c117bab3643b006df06c68982b,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: ff65d08cf93adcc4ba4a0b87607297e8, type: 2}
     - target: {fileID: 919132149155446097, guid: 63a0b5c117bab3643b006df06c68982b,
         type: 3}
       propertyPath: m_Name
-      value: Start
+      value: WhiteStart
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 63a0b5c117bab3643b006df06c68982b, type: 3}
