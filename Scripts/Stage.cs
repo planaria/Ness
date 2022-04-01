@@ -25,7 +25,6 @@ namespace SuzuFactory.Ness
         public GameObject triangle1Prefab;
         public GameObject triangle2Prefab;
         public GameObject triangle3Prefab;
-        public GameObject hexagonPrefab;
         public Material[] colorMaterials;
         public Material errorMaterial;
         public AudioClip succeededAudioClip;
@@ -117,7 +116,7 @@ namespace SuzuFactory.Ness
         private const int COLLIDER_TYPE_CELL = 0;
         private const int COLLIDER_TYPE_GRID = 1;
 
-        private bool solved = false;
+        [UdonSynced] private bool solved = false;
         private bool solvedByMyself = false;
         private bool editor = true;
 
@@ -141,6 +140,7 @@ namespace SuzuFactory.Ness
         private SkinnedMeshRenderer whitePathTemplate;
         private SkinnedMeshRenderer startTemplate;
         private SkinnedMeshRenderer endTemplate;
+        private SkinnedMeshRenderer hexagonTemplate;
 
         private GameObject[] failedObjects;
         private int numFailedObjects;
@@ -153,6 +153,7 @@ namespace SuzuFactory.Ness
         private Mesh whitePathMesh;
         private Mesh startMesh;
         private Mesh endMesh;
+        private Mesh hexagonMesh;
 
         void Start()
         {
@@ -177,6 +178,7 @@ namespace SuzuFactory.Ness
             whitePathTemplate = (SkinnedMeshRenderer)templatesTransform.Find("WhitePath/WhitePath").GetComponent(typeof(SkinnedMeshRenderer));
             startTemplate = (SkinnedMeshRenderer)templatesTransform.Find("Start/Start").GetComponent(typeof(SkinnedMeshRenderer));
             endTemplate = (SkinnedMeshRenderer)templatesTransform.Find("End/End").GetComponent(typeof(SkinnedMeshRenderer));
+            hexagonTemplate = (SkinnedMeshRenderer)templatesTransform.Find("Hexagon/Hexagon").GetComponent(typeof(SkinnedMeshRenderer));
 
             ClearAll();
         }
@@ -251,6 +253,11 @@ namespace SuzuFactory.Ness
                 endTemplate.SetBlendShapeWeight(0, radiusWeight);
                 endTemplate.BakeMesh(endMesh);
                 endMesh.RecalculateBounds();
+
+                hexagonMesh = new Mesh();
+                hexagonTemplate.SetBlendShapeWeight(0, radiusWeight);
+                hexagonTemplate.BakeMesh(hexagonMesh);
+                hexagonMesh.RecalculateBounds();
             }
 
             for (int i = 0; i <= numRows; ++i)
@@ -518,27 +525,34 @@ namespace SuzuFactory.Ness
                     var p = GetGridPosition(i, j);
                     var g = grids[GetGridIndex(i, j)];
 
-                    GameObject newGameObject;
-
                     switch (g)
                     {
                         case GRID_START:
                         case GRID_END:
-                            {
-                                newGameObject = VRCInstantiate(emptyMeshPrefab);
-                                var meshFilter = (MeshFilter)newGameObject.GetComponent(typeof(MeshFilter));
-                                meshFilter.sharedMesh = g == GRID_START ? startMesh : endMesh;
-                                var meshRenderer = (MeshRenderer)newGameObject.GetComponent(typeof(MeshRenderer));
-                                meshRenderer.sharedMaterials = (g == GRID_START ? startTemplate : endTemplate).sharedMaterials;
-                            }
-                            break;
                         case GRID_HEXAGON:
-                            {
-                                newGameObject = VRCInstantiate(hexagonPrefab);
-                            }
                             break;
                         default:
                             continue;
+                    }
+
+                    var newGameObject = VRCInstantiate(emptyMeshPrefab);
+                    var meshFilter = (MeshFilter)newGameObject.GetComponent(typeof(MeshFilter));
+                    var meshRenderer = (MeshRenderer)newGameObject.GetComponent(typeof(MeshRenderer));
+
+                    switch (g)
+                    {
+                        case GRID_START:
+                            meshFilter.sharedMesh = startMesh;
+                            meshRenderer.sharedMaterials = startTemplate.sharedMaterials;
+                            break;
+                        case GRID_END:
+                            meshFilter.sharedMesh = endMesh;
+                            meshRenderer.sharedMaterials = endTemplate.sharedMaterials;
+                            break;
+                        case GRID_HEXAGON:
+                            meshFilter.sharedMesh = hexagonMesh;
+                            meshRenderer.sharedMaterials = hexagonTemplate.sharedMaterials;
+                            break;
                     }
 
                     var t = newGameObject.transform;

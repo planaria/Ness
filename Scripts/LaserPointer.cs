@@ -24,7 +24,7 @@ namespace SuzuFactory.Ness
         private const int LASER_BUTTON_LAYER_INDEX = 26;
         private const int LASER_BUTTON_LAYER = 1 << LASER_BUTTON_LAYER_INDEX;
 
-        private const float MAX_DISTANCE = 100.0f;
+        private const float MAX_DISTANCE = 3.0f;
 
         void Start()
         {
