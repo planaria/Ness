@@ -51,9 +51,9 @@ namespace SuzuFactory.Ness
 
         private const float BLOCK_SIZE = 0.03f;
         private const float POLYNOMIO_SIZE = 0.023f;
-        private const float END_SIZE = 0.005f;
-        private const float DEFAULT_PATH_RADIUS = 0.003f;
-        private const float DEFAULT_START_RADIUS = 0.007f;
+        private const float BASE_END_SIZE = 0.007f;
+        private const float BASE_PATH_RADIUS = 0.003f;
+        private const float BASE_START_RADIUS = 0.007f;
         private const float DISJOINT_WIDTH = 0.006f;
 
         private const int CELL_BITS_TYPE = 4;
@@ -199,14 +199,14 @@ namespace SuzuFactory.Ness
             }
 
             var maxSize = Mathf.Max(MAX_NUM_ROWS, MAX_NUM_COLS);
-            var size = Mathf.Max(numRows, numCols);
-            var wholeScale = (maxSize + 1.0f) / (size + 1.0f);
+            var size = Mathf.Max(1, Mathf.Max(numRows, numCols));
+            var wholeScale = (maxSize + 0.03f) / (size + 0.03f);
             scaleTransform.localScale = new Vector3(wholeScale, 1.0f, wholeScale);
 
             cellGameObjects = new GameObject[cells.Length];
             gridGameObjects = new GameObject[grids.Length];
 
-            radiusWeight = 100.0f * (1.0f - Mathf.Clamp(2.0f / wholeScale, 0.15f, 1.0f));
+            radiusWeight = 100.0f * (1.0f - Mathf.Clamp(2.0f / wholeScale, 0.1f, 1.0f));
 
             for (int i = 0; i <= numRows; ++i)
             {
@@ -1415,18 +1415,22 @@ namespace SuzuFactory.Ness
                 var nextRow = row;
                 var nextCol = col;
 
+                var pathRadius = BASE_PATH_RADIUS * (1.0f - radiusWeight / 100.0f);
+                var startRadius = BASE_START_RADIUS * (1.0f - radiusWeight / 100.0f);
+                var endSize = BASE_END_SIZE * (1.0f - radiusWeight / 100.0f);
+
                 if (Mathf.Abs(delta.x) < Mathf.Abs(delta.z))
                 {
-                    if (isEndBottom && row == 0 && delta.z < -END_SIZE)
+                    if (isEndBottom && row == 0 && delta.z < -endSize)
                     {
                         testEnd = true;
-                        delta.z = -END_SIZE;
+                        delta.z = -endSize;
                     }
 
-                    if (isEndTop && row == numRows * 4 && delta.z > END_SIZE)
+                    if (isEndTop && row == numRows * 4 && delta.z > endSize)
                     {
                         testEnd = true;
-                        delta.z = END_SIZE;
+                        delta.z = endSize;
                     }
 
                     length = Mathf.Abs(delta.z);
@@ -1444,16 +1448,16 @@ namespace SuzuFactory.Ness
                 }
                 else
                 {
-                    if (isEndLeft && col == 0 && delta.x < -END_SIZE)
+                    if (isEndLeft && col == 0 && delta.x < -endSize)
                     {
                         testEnd = true;
-                        delta.x = -END_SIZE;
+                        delta.x = -endSize;
                     }
 
-                    if (isEndRight && col == numCols * 4 && delta.x > END_SIZE)
+                    if (isEndRight && col == numCols * 4 && delta.x > endSize)
                     {
                         testEnd = true;
-                        delta.x = END_SIZE;
+                        delta.x = endSize;
                     }
 
                     length = Mathf.Abs(delta.x);
@@ -1469,9 +1473,6 @@ namespace SuzuFactory.Ness
                         angle = 0.0f;
                     }
                 }
-
-                var pathRadius = DEFAULT_PATH_RADIUS * (1.0f - radiusWeight / 100.0f);
-                var startRadius = DEFAULT_START_RADIUS * (1.0f - radiusWeight / 100.0f);
 
                 if (nextRow != row || nextCol != col)
                 {

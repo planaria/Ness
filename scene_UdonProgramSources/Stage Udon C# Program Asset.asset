@@ -2091,7 +2091,7 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: END_SIZE
+      Data: BASE_END_SIZE
     - Name: $v
       Entry: 7
       Data: 114|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
@@ -2112,10 +2112,10 @@ MonoBehaviour:
       Data: SystemSingle
     - Name: symbolOriginalName
       Entry: 1
-      Data: END_SIZE
+      Data: BASE_END_SIZE
     - Name: symbolUniqueName
       Entry: 1
-      Data: END_SIZE
+      Data: BASE_END_SIZE
     - Name: symbolDefaultValue
       Entry: 6
       Data: 
@@ -2149,7 +2149,7 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: DEFAULT_PATH_RADIUS
+      Data: BASE_PATH_RADIUS
     - Name: $v
       Entry: 7
       Data: 117|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
@@ -2170,10 +2170,10 @@ MonoBehaviour:
       Data: SystemSingle
     - Name: symbolOriginalName
       Entry: 1
-      Data: DEFAULT_PATH_RADIUS
+      Data: BASE_PATH_RADIUS
     - Name: symbolUniqueName
       Entry: 1
-      Data: DEFAULT_PATH_RADIUS
+      Data: BASE_PATH_RADIUS
     - Name: symbolDefaultValue
       Entry: 6
       Data: 
@@ -2207,7 +2207,7 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: DEFAULT_START_RADIUS
+      Data: BASE_START_RADIUS
     - Name: $v
       Entry: 7
       Data: 120|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
@@ -2228,10 +2228,10 @@ MonoBehaviour:
       Data: SystemSingle
     - Name: symbolOriginalName
       Entry: 1
-      Data: DEFAULT_START_RADIUS
+      Data: BASE_START_RADIUS
     - Name: symbolUniqueName
       Entry: 1
-      Data: DEFAULT_START_RADIUS
+      Data: BASE_START_RADIUS
     - Name: symbolDefaultValue
       Entry: 6
       Data: 
