@@ -7,7 +7,17 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Background
+    second: {fileID: 2100000, guid: 789999b226298af41bd7c1d76fc02285, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Black
+    second: {fileID: 2100000, guid: 42c7d82354d3b8a408b2ba859be611a0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Black.001
     second: {fileID: 2100000, guid: 42c7d82354d3b8a408b2ba859be611a0, type: 2}
   - first:
       type: UnityEngine:Material
