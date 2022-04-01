@@ -51,7 +51,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 63a0b5c117bab3643b006df06c68982b,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.0001
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 63a0b5c117bab3643b006df06c68982b,
         type: 3}
@@ -101,6 +101,16 @@ PrefabInstance:
     - target: {fileID: -3887185075125053422, guid: 63a0b5c117bab3643b006df06c68982b,
         type: 3}
       propertyPath: m_DirtyAABB
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -3887185075125053422, guid: 63a0b5c117bab3643b006df06c68982b,
+        type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -3887185075125053422, guid: 63a0b5c117bab3643b006df06c68982b,
+        type: 3}
+      propertyPath: m_ReceiveShadows
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -3887185075125053422, guid: 63a0b5c117bab3643b006df06c68982b,

@@ -12,10 +12,8 @@ namespace SuzuFactory.Ness
     {
         public UdonBehaviour eventReceiver;
 
+        public GameObject emptyMeshPrefab;
         public GameObject emptyPrefab;
-        public GameObject pathPrefab;
-        public GameObject whitePathPrefab;
-        public GameObject disjointPathPrefab;
         public GameObject cellColliderPrefab;
         public GameObject gridColliderPrefab;
         public GameObject startColliderPrefab;
@@ -27,8 +25,6 @@ namespace SuzuFactory.Ness
         public GameObject triangle1Prefab;
         public GameObject triangle2Prefab;
         public GameObject triangle3Prefab;
-        public GameObject startPrefab;
-        public GameObject endPrefab;
         public GameObject hexagonPrefab;
         public Material[] colorMaterials;
         public Material errorMaterial;
@@ -54,7 +50,7 @@ namespace SuzuFactory.Ness
         private const float BASE_END_SIZE = 0.007f;
         private const float BASE_PATH_RADIUS = 0.003f;
         private const float BASE_START_RADIUS = 0.007f;
-        private const float DISJOINT_WIDTH = 0.006f;
+        private const float DISJOINT_WIDTH = 0.003f;
 
         private const int CELL_BITS_TYPE = 4;
         private const int CELL_BITS_COLOR = 4;
@@ -140,20 +136,33 @@ namespace SuzuFactory.Ness
         private Transform whiteStarTransform;
         private AudioSource audioSource;
 
+        private SkinnedMeshRenderer pathTemplate;
+        private SkinnedMeshRenderer disjointPathTemplate;
+        private SkinnedMeshRenderer whitePathTemplate;
+        private SkinnedMeshRenderer startTemplate;
+        private SkinnedMeshRenderer endTemplate;
+
         private GameObject[] failedObjects;
         private int numFailedObjects;
 
         private float radiusWeight = 0.0f;
+
+        private float lastRadiusWeight = -1.0f;
+        private Mesh pathMesh;
+        private Mesh disjointPathMesh;
+        private Mesh whitePathMesh;
+        private Mesh startMesh;
+        private Mesh endMesh;
 
         void Start()
         {
             scaleTransform = transform.Find("Scale");
             mapTransform = scaleTransform.Find("Map");
             pathTransform = scaleTransform.Find("Path");
-            currentStartTransform = scaleTransform.Find("CurrentStart");
-            currentPathTransform = scaleTransform.Find("CurrentPath");
-            currentStartSymmetryTransform = scaleTransform.Find("CurrentStartSymmetry");
-            currentPathSymmetryTransform = scaleTransform.Find("CurrentPathSymmetry");
+            currentStartTransform = scaleTransform.Find("Current/Start");
+            currentPathTransform = scaleTransform.Find("Current/Path");
+            currentStartSymmetryTransform = scaleTransform.Find("Current/StartSymmetry");
+            currentPathSymmetryTransform = scaleTransform.Find("Current/PathSymmetry");
             currentStartMeshRenderer = (SkinnedMeshRenderer)currentStartTransform.GetChild(0).GetComponent(typeof(SkinnedMeshRenderer));
             currentPathMeshRenderer = (SkinnedMeshRenderer)currentPathTransform.GetChild(0).GetComponent(typeof(SkinnedMeshRenderer));
             currentStartSymmetryMeshRenderer = (SkinnedMeshRenderer)currentStartSymmetryTransform.GetChild(0).GetComponent(typeof(SkinnedMeshRenderer));
@@ -161,6 +170,13 @@ namespace SuzuFactory.Ness
             starTransform = transform.Find("Star");
             whiteStarTransform = transform.Find("WhiteStar");
             audioSource = (AudioSource)transform.Find("Audio Source").GetComponent(typeof(AudioSource));
+
+            var templatesTransform = transform.Find("Templates");
+            pathTemplate = (SkinnedMeshRenderer)templatesTransform.Find("Path/Path").GetComponent(typeof(SkinnedMeshRenderer));
+            disjointPathTemplate = (SkinnedMeshRenderer)templatesTransform.Find("DisjointPath/Path").GetComponent(typeof(SkinnedMeshRenderer));
+            whitePathTemplate = (SkinnedMeshRenderer)templatesTransform.Find("WhitePath/WhitePath").GetComponent(typeof(SkinnedMeshRenderer));
+            startTemplate = (SkinnedMeshRenderer)templatesTransform.Find("Start/Start").GetComponent(typeof(SkinnedMeshRenderer));
+            endTemplate = (SkinnedMeshRenderer)templatesTransform.Find("End/End").GetComponent(typeof(SkinnedMeshRenderer));
 
             ClearAll();
         }
@@ -208,15 +224,46 @@ namespace SuzuFactory.Ness
 
             radiusWeight = 100.0f * (1.0f - Mathf.Clamp(2.0f / wholeScale, 0.1f, 1.0f));
 
+            if (radiusWeight != lastRadiusWeight)
+            {
+                pathMesh = new Mesh();
+                pathTemplate.SetBlendShapeWeight(0, radiusWeight);
+                pathTemplate.BakeMesh(pathMesh);
+                pathMesh.RecalculateBounds();
+
+                disjointPathMesh = new Mesh();
+                disjointPathTemplate.SetBlendShapeWeight(0, radiusWeight);
+                disjointPathTemplate.BakeMesh(disjointPathMesh);
+                disjointPathMesh.RecalculateBounds();
+
+                whitePathMesh = new Mesh();
+                whitePathTemplate.SetBlendShapeWeight(0, 25.0f);
+                whitePathTemplate.SetBlendShapeWeight(1, radiusWeight);
+                whitePathTemplate.BakeMesh(whitePathMesh);
+                whitePathMesh.RecalculateBounds();
+
+                startMesh = new Mesh();
+                startTemplate.SetBlendShapeWeight(0, radiusWeight);
+                startTemplate.BakeMesh(startMesh);
+                startMesh.RecalculateBounds();
+
+                endMesh = new Mesh();
+                endTemplate.SetBlendShapeWeight(0, radiusWeight);
+                endTemplate.BakeMesh(endMesh);
+                endMesh.RecalculateBounds();
+            }
+
             for (int i = 0; i <= numRows; ++i)
             {
                 for (int j = 0; j < numCols; ++j)
                 {
                     var joint = grids[GetGridIndex(i * 2, j * 2 + 1)] != GRID_DISJOINT;
-                    var newPath = VRCInstantiate(joint ? pathPrefab : disjointPathPrefab);
+                    var newPath = VRCInstantiate(emptyMeshPrefab);
                     var t = newPath.transform;
-                    var meshRenderer = (SkinnedMeshRenderer)t.GetChild(0).GetComponent(typeof(SkinnedMeshRenderer));
-                    meshRenderer.SetBlendShapeWeight(0, radiusWeight);
+                    var meshFilter = (MeshFilter)t.GetComponent(typeof(MeshFilter));
+                    meshFilter.sharedMesh = joint ? pathMesh : disjointPathMesh;
+                    var meshRenderer = (MeshRenderer)t.GetComponent(typeof(MeshRenderer));
+                    meshRenderer.sharedMaterials = (joint ? pathTemplate : disjointPathTemplate).sharedMaterials;
                     t.SetParent(mapTransform, false);
                     t.localPosition = GetHalfGridPosition(i, j);
                     t.localRotation = Quaternion.Euler(0.0f, 180.0f, 0.0f);
@@ -228,10 +275,12 @@ namespace SuzuFactory.Ness
                 for (int j = 0; j <= numCols; ++j)
                 {
                     var joint = grids[GetGridIndex(i * 2 + 1, j * 2)] != GRID_DISJOINT;
-                    var newPath = VRCInstantiate(joint ? pathPrefab : disjointPathPrefab);
+                    var newPath = VRCInstantiate(emptyMeshPrefab);
                     var t = newPath.transform;
-                    var meshRenderer = (SkinnedMeshRenderer)t.GetChild(0).GetComponent(typeof(SkinnedMeshRenderer));
-                    meshRenderer.SetBlendShapeWeight(0, radiusWeight);
+                    var meshFilter = (MeshFilter)t.GetComponent(typeof(MeshFilter));
+                    meshFilter.sharedMesh = joint ? pathMesh : disjointPathMesh;
+                    var meshRenderer = (MeshRenderer)t.GetComponent(typeof(MeshRenderer));
+                    meshRenderer.sharedMaterials = (joint ? pathTemplate : disjointPathTemplate).sharedMaterials;
                     t.SetParent(mapTransform, false);
                     t.localPosition = GetHalfGridPosition(i, j);
                     t.localRotation = Quaternion.Euler(0.0f, 90.0f, 0.0f);
@@ -469,28 +518,30 @@ namespace SuzuFactory.Ness
                     var p = GetGridPosition(i, j);
                     var g = grids[GetGridIndex(i, j)];
 
-                    GameObject prefab = null;
+                    GameObject newGameObject;
 
                     switch (g)
                     {
                         case GRID_START:
-                            prefab = startPrefab;
-                            break;
                         case GRID_END:
-                            prefab = endPrefab;
+                            {
+                                newGameObject = VRCInstantiate(emptyMeshPrefab);
+                                var meshFilter = (MeshFilter)newGameObject.GetComponent(typeof(MeshFilter));
+                                meshFilter.sharedMesh = g == GRID_START ? startMesh : endMesh;
+                                var meshRenderer = (MeshRenderer)newGameObject.GetComponent(typeof(MeshRenderer));
+                                meshRenderer.sharedMaterials = (g == GRID_START ? startTemplate : endTemplate).sharedMaterials;
+                            }
                             break;
                         case GRID_HEXAGON:
-                            prefab = hexagonPrefab;
+                            {
+                                newGameObject = VRCInstantiate(hexagonPrefab);
+                            }
                             break;
                         default:
                             continue;
                     }
 
-                    var newGameObject = VRCInstantiate(prefab);
                     var t = newGameObject.transform;
-                    var meshRenderer = (SkinnedMeshRenderer)t.GetChild(0).GetComponent(typeof(SkinnedMeshRenderer));
-                    meshRenderer.SetBlendShapeWeight(0, radiusWeight);
-
                     t.SetParent(mapTransform, false);
                     t.localPosition = p;
 
@@ -1491,7 +1542,7 @@ namespace SuzuFactory.Ness
 
                     if (IsDisjoint(nextRow, nextCol))
                     {
-                        length = Mathf.Min(length, BLOCK_SIZE / 4.0f - DISJOINT_WIDTH);
+                        length = Mathf.Min(length, BLOCK_SIZE / 4.0f - DISJOINT_WIDTH - pathRadius);
                     }
                     else
                     {
@@ -2554,14 +2605,18 @@ namespace SuzuFactory.Ness
             newWaypoints[testWaypoints.Length] = GetWaypointIndex(row, col);
             testWaypoints = newWaypoints;
 
-            var newPath1 = VRCInstantiate(whitePathPrefab);
-            var t1 = newPath1.transform;
-            var meshRenderer1 = (SkinnedMeshRenderer)t1.GetChild(0).GetComponent(typeof(SkinnedMeshRenderer));
-            meshRenderer1.SetBlendShapeWeight(0, 25.0f);
-            meshRenderer1.SetBlendShapeWeight(1, radiusWeight);
-            t1.SetParent(pathTransform, false);
-            t1.localPosition = lastPos1;
-            t1.localRotation = Quaternion.Euler(0.0f, -Mathf.Atan2(pos1.z - lastPos1.z, pos1.x - lastPos1.x) * Mathf.Rad2Deg, 0.0f);
+            var newPath1 = VRCInstantiate(emptyMeshPrefab);
+
+            {
+                var t = newPath1.transform;
+                var meshFilter = (MeshFilter)t.GetComponent(typeof(MeshFilter));
+                meshFilter.sharedMesh = whitePathMesh;
+                var meshRenderer = (MeshRenderer)t.GetComponent(typeof(MeshRenderer));
+                meshRenderer.sharedMaterials = whitePathTemplate.sharedMaterials;
+                t.SetParent(pathTransform, false);
+                t.localPosition = lastPos1;
+                t.localRotation = Quaternion.Euler(0.0f, -Mathf.Atan2(pos1.z - lastPos1.z, pos1.x - lastPos1.x) * Mathf.Rad2Deg + 180.0f, 0.0f);
+            }
 
             GameObject newPath2 = null;
 
@@ -2570,14 +2625,15 @@ namespace SuzuFactory.Ness
                 var lastPos2 = GetSymmetryWaypointPosition(lastRow, lastCol);
                 var pos2 = GetSymmetryWaypointPosition(row, col);
 
-                newPath2 = VRCInstantiate(whitePathPrefab);
-                var t2 = newPath2.transform;
-                var meshRenderer2 = (SkinnedMeshRenderer)t2.GetChild(0).GetComponent(typeof(SkinnedMeshRenderer));
-                meshRenderer2.SetBlendShapeWeight(0, 25.0f);
-                meshRenderer2.SetBlendShapeWeight(1, radiusWeight);
-                t2.SetParent(pathTransform, false);
-                t2.localPosition = lastPos2;
-                t2.localRotation = Quaternion.Euler(0.0f, -Mathf.Atan2(pos2.z - lastPos2.z, pos2.x - lastPos2.x) * Mathf.Rad2Deg, 0.0f);
+                newPath2 = VRCInstantiate(emptyMeshPrefab);
+                var t = newPath2.transform;
+                var meshFilter = (MeshFilter)t.GetComponent(typeof(MeshFilter));
+                meshFilter.sharedMesh = whitePathMesh;
+                var meshRenderer = (MeshRenderer)t.GetComponent(typeof(MeshRenderer));
+                meshRenderer.sharedMaterials = whitePathTemplate.sharedMaterials;
+                t.SetParent(pathTransform, false);
+                t.localPosition = lastPos2;
+                t.localRotation = Quaternion.Euler(0.0f, -Mathf.Atan2(pos2.z - lastPos2.z, pos2.x - lastPos2.x) * Mathf.Rad2Deg + 180.0f, 0.0f);
             }
 
             var newPaths = new GameObject[testPaths.Length + 2];

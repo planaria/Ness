@@ -1,4 +1,4 @@
-﻿Shader "SuzuFactory/Ness/PanelBackground"
+Shader "SuzuFactory/Ness/Unlit"
 {
     Properties
     {
@@ -48,20 +48,10 @@
                 return o;
             }
 
-            float Noise3(float3 x)
-            {
-                float y = frac(sin(dot(x, float3(3.312068, 8.1068, 1.0803))) * 1080.0543);
-                y = frac(sin(y * 2.0384) * 640.06032);
-                y = frac(sin(y * 2.0384) * 640.06032);
-                return 2.0 * y - 1.0;
-            }
-
             float4 frag(v2f i) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(i);
-                float2 d = pow(abs(i.uv - 0.5) / 1.5, 4.0);
-                float n = (Noise3(float3(i.uv, _Time.x)) - 0.5) * 0.01;
-                float4 col = _Color * (1.0 - pow(d.x + d.y, 1.0 / 4.0) + n);
+                float4 col = _Color;
                 UNITY_APPLY_FOG(i.fogCoord, col);
                 return col;
             }
