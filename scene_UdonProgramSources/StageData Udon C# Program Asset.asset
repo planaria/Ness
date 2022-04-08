@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: StageData Udon C# Program Asset
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 3c19fa887bf886742971553199f566cf,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: e23712e5a11d33d4183054cdbb2c8fa2,
     type: 2}
   udonAssembly: 
   assemblyError: 
