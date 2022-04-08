@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: Panel Udon C# Program Asset
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: e3d5127aa7d28a84abe471d0dedfc5e3,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 6059a0f08c05b734e88007570dcc93c6,
     type: 2}
   udonAssembly: 
   assemblyError: 

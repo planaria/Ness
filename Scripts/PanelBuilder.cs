@@ -6,7 +6,7 @@ using VRC.Udon;
 
 namespace SuzuFactory.Ness
 {
-    [DefaultExecutionOrder(-1)]
+    [DefaultExecutionOrder(-3)]
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     public class PanelBuilder : UdonSharpBehaviour
     {
@@ -56,14 +56,20 @@ namespace SuzuFactory.Ness
             spawn = transform.Find("Spawn");
         }
 
-        public override void Interact()
+        public string GetRandomData()
         {
             if (lines.Length == 0)
             {
-                return;
+                return null;
             }
 
             var index = Random.Range(0, lines.Length - 1);
+            return lines[index];
+        }
+
+        public override void Interact()
+        {
+            var data = GetRandomData();
 
             var pool = transform.Find("/PanelPool").GetComponent<PanelPool>();
             var obj = pool.TryToSpawn();
@@ -76,7 +82,7 @@ namespace SuzuFactory.Ness
                 sync.FlagDiscontinuity();
 
                 var newStageData = obj.transform.Find("StageData").GetComponent<StageData>();
-                newStageData.Deserialize(lines[index]);
+                newStageData.Deserialize(data);
 
                 Debug.Log("BUILD: " + newStageData.Serialize());
             }
