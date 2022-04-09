@@ -8,6 +8,9 @@ namespace SuzuFactory.Ness
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     public class LaserPointer : UdonSharpBehaviour
     {
+        public bool attach = true;
+        public bool respawn = true;
+
 #if UNITY_EDITOR
         public bool trigger = false;
         private bool lastTrigger = false;
@@ -145,13 +148,13 @@ namespace SuzuFactory.Ness
                 {
                     var vr = localPlayer.IsUserInVR();
 
-                    handle.SetActive(!vr);
+                    handle.SetActive(!(vr && attach));
 
-                    if (vr)
+                    if (vr && attach)
                     {
                         transform.position = localPlayer.GetBonePosition(HumanBodyBones.Head);
                     }
-                    else
+                    else if (respawn)
                     {
                         if (lastPickupTime != 0.0f && now - lastPickupTime > 10.0f)
                         {
