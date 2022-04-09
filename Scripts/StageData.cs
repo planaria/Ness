@@ -40,14 +40,9 @@ namespace SuzuFactory.Ness
         {
             Networking.SetOwner(Networking.LocalPlayer, gameObject);
 
-            this.numRows = stage.NumRows;
-            this.numCols = stage.NumCols;
-            this.cells = stage.ClonedCells;
-            this.grids = stage.ClonedGrids;
-            this.symmetry = stage.Symmetry;
+            Deserialize(stage.Serialize());
             this.solved = stage.IsSolved;
             this.creator = Networking.LocalPlayer.playerId;
-            ++version;
 
             RequestSerialization();
         }
