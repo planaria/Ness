@@ -19,9 +19,6 @@ namespace SuzuFactory.Ness
         private VRC_Pickup pickup;
         private GameObject lastTarget = null;
         private StartCollider dragTarget = null;
-        private Vector3 initialPosition;
-        private Quaternion initialRotation;
-        private float lastPickupTime = 0.0f;
 
         private const int DEFAULT_LAYER = 1 << 0;
         private const int LASER_BUTTON_LAYER_INDEX = 26;
@@ -35,9 +32,6 @@ namespace SuzuFactory.Ness
             laser = transform.Find("Laser");
             handle = transform.Find("Handle").gameObject;
             pickup = (VRC_Pickup)GetComponent(typeof(VRC_Pickup));
-
-            initialPosition = transform.position;
-            initialRotation = transform.rotation;
         }
 
         void Update()
@@ -57,8 +51,6 @@ namespace SuzuFactory.Ness
                 lastTrigger = trigger;
             }
 #endif
-
-            var now = Time.time;
 
 #if UNITY_EDITOR
             var held = true;
@@ -134,8 +126,6 @@ namespace SuzuFactory.Ness
 
                 pointer.gameObject.SetActive(true);
                 laser.gameObject.SetActive(true);
-
-                lastPickupTime = now;
             }
             else
             {
@@ -150,14 +140,6 @@ namespace SuzuFactory.Ness
                     if (vr)
                     {
                         transform.position = localPlayer.GetBonePosition(HumanBodyBones.Head);
-                    }
-                    else
-                    {
-                        if (lastPickupTime != 0.0f && now - lastPickupTime > 10.0f)
-                        {
-                            transform.SetPositionAndRotation(initialPosition, initialRotation);
-                            lastPickupTime = 0.0f;
-                        }
                     }
                 }
 
