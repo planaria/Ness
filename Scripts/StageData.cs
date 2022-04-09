@@ -11,8 +11,8 @@ namespace SuzuFactory.Ness
     {
         [UdonSynced] private int numRows;
         [UdonSynced] private int numCols;
-        [UdonSynced] private ulong[] cells;
-        [UdonSynced] private ulong[] grids;
+        [UdonSynced] private ulong[] cells = new ulong[0];
+        [UdonSynced] private ulong[] grids = new ulong[0];
         [UdonSynced] private int symmetry;
         [UdonSynced] private bool solved;
         [UdonSynced] private int creator;
@@ -54,6 +54,8 @@ namespace SuzuFactory.Ness
 
         public void Deserialize(string str)
         {
+            Networking.SetOwner(Networking.LocalPlayer, gameObject);
+
             stage.Deserialize(str);
 
             this.numRows = stage.NumRows;
@@ -64,6 +66,8 @@ namespace SuzuFactory.Ness
             this.solved = false;
             this.creator = -1;
             ++version;
+
+            RequestSerialization();
         }
     }
 }
