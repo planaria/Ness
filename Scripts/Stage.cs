@@ -2931,11 +2931,12 @@ namespace SuzuFactory.Ness
 
         private const string START_SIGNATURE = "NESS_START_";
         private const string END_SIGNATURE = "_END_NESS";
-        private const uint CURRENT_VERSION = 1;
+        private const uint CURRENT_VERSION = 2;
 
         public string Serialize()
         {
-            var data = new byte[4 + 1 + 1 + cells.Length * 8 + grids.Length * 1];
+            var dataSize = 4 + 1 + 1 + 1 + cells.Length * 8 + grids.Length * 1;
+            var data = new byte[dataSize];
             int index = 0;
 
             for (int j = 0; j < 4; ++j)
@@ -2945,6 +2946,7 @@ namespace SuzuFactory.Ness
 
             data[index++] = (byte)numRows;
             data[index++] = (byte)numCols;
+            data[index++] = (byte)symmetry;
 
             for (int i = 0; i < cells.Length; ++i)
             {
@@ -2973,11 +2975,13 @@ namespace SuzuFactory.Ness
         {
             if (!str.StartsWith(START_SIGNATURE))
             {
+                Debug.Log("!str.StartsWith(START_SIGNATURE)");
                 return;
             }
 
             if (!str.EndsWith(END_SIGNATURE))
             {
+                Debug.Log("!str.EndsWith(END_SIGNATURE)");
                 return;
             }
 
@@ -2988,6 +2992,7 @@ namespace SuzuFactory.Ness
 
             if (data.Length < 4)
             {
+                Debug.Log("data.Length < 4");
                 return;
             }
 
@@ -3000,27 +3005,46 @@ namespace SuzuFactory.Ness
 
             if (version > CURRENT_VERSION)
             {
+                Debug.Log("version > CURRENT_VERSION");
                 return;
             }
 
-            if (data.Length < 6)
+            var minimumDataSize = 4 + 1 + 1;
+
+            if (version >= 2)
             {
+                ++minimumDataSize;
+            }
+
+            if (data.Length < minimumDataSize)
+            {
+                Debug.Log("data.Length < minimumDataSize");
                 return;
             }
 
             var numRows = (int)data[index++];
             var numCols = (int)data[index++];
+            int symmetry = SYMMETRY_NONE;
+
+            if (version >= 2)
+            {
+                symmetry = (int)data[index++];
+            }
 
             if (numRows > 10 || numCols > 10)
             {
+                Debug.Log("numRows > 10 || numCols > 10");
                 return;
             }
 
             var cells = new ulong[numRows * numCols];
             var grids = new ulong[(numRows * 2 + 1) * (numCols * 2 + 1)];
 
-            if (data.Length != 4 + 1 + 1 + cells.Length * 8 + grids.Length * 1)
+            var expectedDataSize = minimumDataSize + cells.Length * 8 + grids.Length * 1;
+
+            if (data.Length != expectedDataSize)
             {
+                Debug.Log("data.Length != expectedDataSize");
                 return;
             }
 
@@ -3050,6 +3074,7 @@ namespace SuzuFactory.Ness
 
             this.numRows = numRows;
             this.numCols = numCols;
+            this.symmetry = symmetry;
             this.cells = cells;
             this.grids = grids;
             ++this.version;
